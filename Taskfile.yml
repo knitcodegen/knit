@@ -1,0 +1,17 @@
+version: 3
+
+tasks:
+  install:
+    cmds:
+      - go mod tidy -v
+      - go mod vendor -v
+
+  build:
+    cmds:
+      - go build -o bin/knit cmd/main.go
+
+  test:
+    env:
+      SCHEMA_FILE: ./schemas/openapi/test.yml
+    cmds:
+      - go run cmd/main.go -glob "./test/*.go"
