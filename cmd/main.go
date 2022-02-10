@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	ANNOTATION_BEG = "// @shift"
-	ANNOTATION_END = "// @!shift"
+	ANNOTATION_BEG = "// @knit"
+	ANNOTATION_END = "// @!knit"
 )
 
 func main() {

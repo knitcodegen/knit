@@ -1,13 +1,13 @@
 package test
 
-// @shift input $SCHEMA_FILE
-// @shift loader openapi
-// @shift template ./templates/openapi/test.tmpl
+// @knit input $SCHEMA_FILE
+// @knit loader openapi
+// @knit template ./templates/openapi/test.tmpl
 type Generated struct {
 	Pet string
 }
 
-// @!shift
+// @!knit
 
 func foo() {
 
