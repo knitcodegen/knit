@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -17,8 +18,22 @@ import (
 )
 
 const (
-	ANNOTATION_BEG = "// @knit"
-	ANNOTATION_END = "// @!knit"
+	ANNOTATION_OPT = "@knit"
+	ANNOTATION_BEG = "@+knit"
+	ANNOTATION_END = "@!knit"
+
+	BEG_PATTERN    = `(.*)@\+knit(.*)`
+	END_PATTERN    = `(.*)@!knit(.*)`
+	OPTION_PATTERN = "@knit[^\\n](\\w*)[^\\n]([^`\\n]*)(?:(`(.|\\n)*`))?"
+)
+
+type Option = string
+
+const (
+	Input    Option = "input"
+	Loader   Option = "loader"
+	Variable Option = "variable"
+	Template Option = "template"
 )
 
 func main() {
@@ -39,7 +54,12 @@ func main() {
 				return errors.Wrap(err, "failed to match any files")
 			}
 			for _, match := range matches {
-				shiftFile(match)
+				log.Printf("shifting file: " + match)
+				err = shiftFile(match)
+				if err != nil {
+					log.Printf("failed to knit file: %+v", err)
+					return errors.Wrap(err, "failed to knit file")
+				}
 			}
 
 			return nil
@@ -54,76 +74,83 @@ type shifter struct {
 	Template *template.Template
 }
 
-func parse(block string) (*shifter, error) {
+func parseOptions(block string) (*shifter, error) {
 	s := &shifter{}
-	lines := strings.Split(block, "\n")
-	for _, l := range lines {
-		// if the current line does not contain an annotation
-		// then skip it
-		begin := strings.Index(l, ANNOTATION_BEG)
-		if begin == -1 {
-			continue
-		}
+	re := regexp.MustCompile(OPTION_PATTERN)
 
-		// skip past the annotation and parse the options
-		begin += len(ANNOTATION_BEG) + 1
-		rawOpts := l[begin:]
-		// save raw option text for use in output
-		s.Options = append(s.Options, rawOpts)
-		// expand environment variables in options
-		rawOpts = os.ExpandEnv(rawOpts)
+	matches := re.FindAllStringSubmatch(block, -1)
+	if matches == nil {
+		return nil, errors.New("failed to match any knit options")
+	}
+	//log.Printf("%+v", matches)
+	for _, match := range matches {
+		s.Options = append(s.Options, match[0])
 
-		split := strings.Split(rawOpts, " ")
-		if split[0] == "input" {
-			s.Input = split[1]
-		} else if split[0] == "loader" {
-			if split[1] == "openapi" {
+		// expand env vars on the options value
+		match[2] = os.ExpandEnv(match[2])
+
+		optionType := match[1]
+		switch optionType {
+		case Input:
+			s.Input = match[2]
+		case Loader:
+			if match[2] == "openapi" {
 				s.Loader = &openapi.Loader{}
 			}
-		} else if split[0] == "template" {
-			file, err := os.ReadFile(split[1])
+		case Template:
+			tmpl := template.New("knit")
+			_, err := os.Stat(match[2])
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to load template file")
-			}
-			tmpl, err := template.New("shift").Parse(string(file))
-			if err != nil {
-				return nil, errors.Wrap(err, "failed to parse template file")
+				if len(match[3]) == 0 {
+					return nil, fmt.Errorf("template %s is not a file and did not find inline template definition", match[2])
+				}
+
+				str := strings.TrimSpace(match[3])
+				// remove the first and last characters (`backticks`)
+				str = str[1 : len(match[3])-1]
+
+				tmpl, err = tmpl.Parse(str)
+				if err != nil {
+					return nil, errors.Wrap(err, "failed to parse inline template")
+				}
+			} else {
+				// template is a file, load from disk
+				file, err := os.ReadFile(match[2])
+				if err != nil {
+					return nil, errors.Wrap(err, "failed to load template file")
+				}
+
+				tmpl, err = tmpl.Parse(string(file))
+				if err != nil {
+					return nil, errors.Wrap(err, "failed to read template from file")
+				}
 			}
 			s.Template = tmpl
-		} else {
-			log.Printf("unknown option: %s", split[0])
-			continue
+		default:
+			return nil, fmt.Errorf("unknown option type: %s", match[0])
 		}
 	}
 	return s, nil
 }
 
-func shift(block string) (string, error) {
-	b := strings.Builder{}
-
-	s, err := parse(block)
+func process(block string) (string, error) {
+	opts, err := parseOptions(block)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to parse options")
+		return "", errors.Wrap(err, "failed to parse knit options")
 	}
 
-	dat, err := s.Loader.LoadFromFile(s.Input)
+	dat, err := opts.Loader.LoadFromFile(opts.Input)
 	if err != nil {
 		return "", errors.Wrap(err, "loader failed to load file")
 	}
 
 	tpl := &bytes.Buffer{}
-	err = s.Template.Execute(tpl, dat)
+	err = opts.Template.Execute(tpl, dat)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to execute template")
 	}
 
-	for _, opt := range s.Options {
-		b.WriteString(fmt.Sprintf("%s %s\n", ANNOTATION_BEG, opt))
-	}
-	b.Write(tpl.Bytes())
-	b.WriteString(fmt.Sprintf("%s\n", ANNOTATION_END))
-
-	return b.String(), nil
+	return tpl.String(), nil
 }
 
 func shiftFile(location string) error {
@@ -136,6 +163,7 @@ func shiftFile(location string) error {
 
 	// SplitAfter includes all text before and including the annotation
 	blocks := strings.SplitAfter(string(inFile), ANNOTATION_END)
+	fmt.Printf("blocks: %d", len(blocks))
 
 	for _, block := range blocks {
 		// Look for a begin annotation. If there isn't one in
@@ -148,16 +176,23 @@ func shiftFile(location string) error {
 
 		// If there is a begin annotation, append all the
 		// text before it
-		b.WriteString(block[:begin])
+		b.WriteString(block[:begin+len(ANNOTATION_BEG)])
+		b.WriteString("\n")
 
-		// Now what remains is the begin/end annotations and
-		// everything in between
-		// Process the annotation block and append the result
-		shifted, err := shift(block[begin:])
+		// Process the annotated block and append the codegen result
+		generated, err := process(block)
 		if err != nil {
-			return errors.Wrap(err, "failed to shift block")
+			return errors.Wrap(err, "failed to generate knit code block")
 		}
-		b.WriteString(shifted)
+		b.WriteString(generated)
+
+		re := regexp.MustCompile(END_PATTERN)
+		endAnnotation := re.FindString(block)
+		if len(endAnnotation) == 0 {
+			return fmt.Errorf("failed to match end annotation")
+		}
+
+		b.WriteString(endAnnotation)
 	}
 
 	newFile, err := format.Source([]byte(b.String()))
