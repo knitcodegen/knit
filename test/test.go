@@ -18,10 +18,25 @@ type HelloWorld struct {
 
 // @!knit
 
-func foo() {
+/*
+  @knit input ./schemas/yml/test.yml
+  @knit loader yml
+  @knit template tmpl`
+    type Generated2 struct {
+    {{ range $k, $v := .test }}
+        {{ $k }} string
+    {{end}}
+    }
+  `
+*/
+// @+knit
 
+type Generated2 struct {
+	a string
+
+	c string
+
+	e string
 }
 
-func bar() {
-
-}
+// @!knit

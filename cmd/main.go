@@ -94,8 +94,12 @@ func parseOptions(block string) (*shifter, error) {
 		case Input:
 			s.Input = match[2]
 		case Loader:
-			if match[2] == "openapi" {
+			loaderType := match[2]
+			if loaderType == "openapi" {
 				s.Loader = &openapi.Loader{}
+			} else if loaderType == "yml" ||
+				loaderType == "yaml" {
+				s.Loader = &loader.YamlLoader{}
 			}
 		case Template:
 			tmpl := template.New("knit")
