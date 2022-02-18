@@ -24,7 +24,7 @@ type HelloWorld struct {
   @knit template tmpl`
     type Generated2 struct {
     {{ range $k, $v := .test }}
-        {{ $k }} string
+        {{ $k }} string \`yml:"{{ $v }}"\`
     {{end}}
     }
   `
@@ -32,11 +32,11 @@ type HelloWorld struct {
 // @+knit
 
 type Generated2 struct {
-	a string
+	A string `yml:"b"`
 
-	c string
+	C string `yml:"d"`
 
-	e string
+	E string `yml:"f"`
 }
 
 // @!knit

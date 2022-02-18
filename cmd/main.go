@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/dlclark/regexp2"
 	"github.com/pkg/errors"
 	"github.com/tylermmorton/gocodeshift/pkg/loader"
 	"github.com/tylermmorton/gocodeshift/pkg/openapi"
@@ -24,7 +25,11 @@ const (
 
 	BEG_PATTERN    = `(.*)@\+knit(.*)`
 	END_PATTERN    = `(.*)@!knit(.*)`
-	OPTION_PATTERN = "@knit[^\\n](\\w*)[^\\n]([^`\\n]*)(?:(`(.|\\n)*`))?"
+	OPTION_PATTERN = "@knit.(\\w*).([^`\\n]*)(?:(`(.|\\n)*?(?<!\\\\)`))?"
+
+	GROUP_OPTION_TYPE    = 1
+	GROUP_OPTION_VALUE   = 2
+	GROUP_OPTION_LITERAL = 3
 )
 
 type Option = string
@@ -74,27 +79,41 @@ type shifter struct {
 	Template *template.Template
 }
 
+// ParserOption represents options read through the regex parser.
+type ParserOption struct {
+	Type    string
+	Value   string
+	Literal string
+}
+
 func parseOptions(block string) (*shifter, error) {
 	s := &shifter{}
-	re := regexp.MustCompile(OPTION_PATTERN)
+	re2 := regexp2.MustCompile(OPTION_PATTERN, regexp2.None)
 
-	matches := re.FindAllStringSubmatch(block, -1)
-	if matches == nil {
-		return nil, errors.New("failed to match any knit options")
+	opts := make([]ParserOption, 0)
+	for m, err := re2.FindStringMatch(block); m != nil; m, err = re2.FindNextMatch(m) {
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to find next knit option")
+		}
+		opts = append(opts, ParserOption{
+			Type:    m.GroupByNumber(GROUP_OPTION_TYPE).String(),
+			Value:   m.GroupByNumber(GROUP_OPTION_VALUE).String(),
+			Literal: m.GroupByNumber(GROUP_OPTION_LITERAL).String(),
+		})
 	}
-	//log.Printf("%+v", matches)
-	for _, match := range matches {
-		s.Options = append(s.Options, match[0])
-
+	for _, opt := range opts {
 		// expand env vars on the options value
-		match[2] = os.ExpandEnv(match[2])
+		opt.Value = os.ExpandEnv(opt.Value)
 
-		optionType := match[1]
-		switch optionType {
+		switch opt.Type {
 		case Input:
-			s.Input = match[2]
+			_, err := os.Stat(opt.Value)
+			if err != nil {
+			} else {
+				s.Input = opt.Value
+			}
 		case Loader:
-			loaderType := match[2]
+			loaderType := opt.Value
 			if loaderType == "openapi" {
 				s.Loader = &openapi.Loader{}
 			} else if loaderType == "yml" ||
@@ -103,15 +122,19 @@ func parseOptions(block string) (*shifter, error) {
 			}
 		case Template:
 			tmpl := template.New("knit")
-			_, err := os.Stat(match[2])
+			_, err := os.Stat(opt.Value)
 			if err != nil {
-				if len(match[3]) == 0 {
-					return nil, fmt.Errorf("template %s is not a file and did not find inline template definition", match[2])
+				if len(opt.Literal) == 0 {
+					return nil, fmt.Errorf("template %s is not a file and did not find inline template definition", opt.Value)
 				}
 
-				str := strings.TrimSpace(match[3])
+				str := strings.TrimSpace(opt.Literal)
+
+				// replace escaped characters
+				str = strings.ReplaceAll(str, "\\`", "`")
+
 				// remove the first and last characters (`backticks`)
-				str = str[1 : len(match[3])-1]
+				str = str[1 : len(str)-1]
 
 				tmpl, err = tmpl.Parse(str)
 				if err != nil {
@@ -119,7 +142,7 @@ func parseOptions(block string) (*shifter, error) {
 				}
 			} else {
 				// template is a file, load from disk
-				file, err := os.ReadFile(match[2])
+				file, err := os.ReadFile(opt.Value)
 				if err != nil {
 					return nil, errors.Wrap(err, "failed to load template file")
 				}
@@ -131,7 +154,7 @@ func parseOptions(block string) (*shifter, error) {
 			}
 			s.Template = tmpl
 		default:
-			return nil, fmt.Errorf("unknown option type: %s", match[0])
+			return nil, fmt.Errorf("unknown option type: %s", opt.Type)
 		}
 	}
 	return s, nil
