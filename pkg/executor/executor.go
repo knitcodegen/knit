@@ -104,6 +104,8 @@ func createLoader(loaderType string) (loader.SchemaLoader, error) {
 		fallthrough
 	case "yaml":
 		return &loader.YamlLoader{}, nil
+	case "json":
+		return &loader.JsonLoader{}, nil
 	case "openapi3":
 		return &loader.OpenAPI3Loader{}, nil
 	}

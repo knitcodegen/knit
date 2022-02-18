@@ -67,3 +67,31 @@ type Generated3 struct {
 }
 
 // @!knit
+
+/*
+  @knit input json`{
+    "test": {
+      "A": "b",
+      "C": "d",
+      "E": "f"
+    }
+  }`
+  @knit template tmpl`
+    type GeneratedFromJSON struct {
+    {{ range $k, $v := .test }}
+        {{ $k }} string \`json:"{{ $v }}"\`
+    {{end}}
+    }
+  `
+*/
+// @+knit
+
+type GeneratedFromJSON struct {
+	A string `json:"b"`
+
+	C string `json:"d"`
+
+	E string `json:"f"`
+}
+
+// @!knit
