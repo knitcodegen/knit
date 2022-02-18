@@ -1,5 +1,6 @@
 package loader
 
 type SchemaLoader interface {
-	LoadFromFile(location string) (interface{}, error)
+	LoadFromData(data []byte) (interface{}, error)
+	//LoadFromFile(location string) (interface{}, error)
 }

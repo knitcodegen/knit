@@ -2,7 +2,7 @@ package test
 
 /*
   @knit input $SCHEMA_FILE
-  @knit loader openapi
+  @knit loader openapi3
   @knit template tmpl`
     // HelloWorld is a struct
     type HelloWorld struct {
@@ -32,6 +32,33 @@ type HelloWorld struct {
 // @+knit
 
 type Generated2 struct {
+	A string `yml:"b"`
+
+	C string `yml:"d"`
+
+	E string `yml:"f"`
+}
+
+// @!knit
+
+/*
+  @knit input yml`
+    test:
+      A: "b"
+      C: "d"
+      E: "f"
+  `
+  @knit template tmpl`
+    type Generated3 struct {
+    {{ range $k, $v := .test }}
+        {{ $k }} string \`yml:"{{ $v }}"\`
+    {{end}}
+    }
+  `
+*/
+// @+knit
+
+type Generated3 struct {
 	A string `yml:"b"`
 
 	C string `yml:"d"`

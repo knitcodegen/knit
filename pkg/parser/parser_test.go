@@ -100,3 +100,42 @@ func Test_Parse(t *testing.T) {
 		assert.Equal(t, c.want.opts, opts)
 	}
 }
+
+func Test_ParseCodegenEnd(t *testing.T) {
+	type input = string
+
+	type want struct {
+		match      string
+		err        bool
+		errMessage string
+	}
+
+	cases := []struct {
+		name  string
+		input input
+		want  want
+	}{
+		{
+			name:  "parses successfully",
+			input: "// @!knit **abc",
+			want: want{
+				match: "// @!knit **abc",
+			},
+		},
+		{
+			name:  "handles empty input",
+			input: "",
+			want: want{
+				err:        true,
+				errMessage: "did not match end annotation",
+			},
+		},
+	}
+	for _, c := range cases {
+		match, err := parser.ParseCodegenEnd(c.input)
+		if c.want.err {
+			assert.Error(t, err, c.want.errMessage)
+		}
+		assert.Equal(t, c.want.match, match)
+	}
+}

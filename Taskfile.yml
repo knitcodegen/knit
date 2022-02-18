@@ -14,4 +14,4 @@ tasks:
     env:
       SCHEMA_FILE: ./schemas/openapi/test.yml
     cmds:
-      - go run cmd/main.go -glob "./test/*.go"
+      - go run cmd/main.go -- "./test/*.go"

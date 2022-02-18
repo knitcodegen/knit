@@ -8,6 +8,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+type OptionType = string
+
+const (
+	Input    OptionType = "input"
+	Loader   OptionType = "loader"
+	Variable OptionType = "variable"
+	Template OptionType = "template"
+)
+
 const (
 	ANNOTATION_OPT = "@knit"
 	ANNOTATION_BEG = "@+knit"
@@ -64,4 +73,17 @@ func replaceEscaped(str string) string {
 	str = strings.ReplaceAll(str, "\\`", "`")
 
 	return str
+}
+
+func ParseCodegenEnd(input string) (string, error) {
+	re := regexp2.MustCompile(END_PATTERN, regexp2.None)
+	m, err := re.FindStringMatch(input)
+	if err != nil {
+		return "", err
+	}
+	if m == nil {
+		return "", errors.New("did not match end annotation")
+	}
+
+	return m.String(), nil
 }
