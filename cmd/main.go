@@ -6,17 +6,19 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
+	"github.com/tylermmorton/knit/pkg/generator"
 	"github.com/tylermmorton/knit/pkg/knit"
+	"github.com/tylermmorton/knit/pkg/parser"
 	"github.com/urfave/cli/v2"
 )
 
 func main() {
 	(&cli.App{
 		Name:  "knit",
-		Usage: "execute knit code generators in specified files",
+		Usage: "find and execute knit generators in specified file glob",
 		Action: func(c *cli.Context) error {
 			if c.NArg() == 0 {
-				return errors.New("no arguments specified")
+				return errors.New("at least one argument is required")
 			}
 
 			pattern := c.Args().First()
@@ -36,6 +38,63 @@ func main() {
 			}
 
 			return nil
+		},
+		Commands: []*cli.Command{
+			{
+				Name:    "generate",
+				Aliases: []string{"gen"},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Required: false,
+						Name:     "loader",
+						Value:    "",
+						Usage:    "loader type for input file",
+					},
+					&cli.PathFlag{
+						Required: true,
+						Name:     "input",
+						Value:    "",
+						Usage:    "input file",
+					},
+					&cli.PathFlag{
+						Required: true,
+						Name:     "template",
+						Value:    "",
+						Usage:    "template file",
+					},
+				},
+				Action: func(c *cli.Context) error {
+					gen, err := generator.FromOpts([]*parser.Option{
+						{
+							Type:  "loader",
+							Value: c.String("loader"),
+						},
+						{
+							Type:  "input",
+							Value: c.Path("input"),
+						},
+						{
+							Type:  "template",
+							Value: c.Path("template"),
+						},
+					})
+					if err != nil {
+						return err
+					}
+
+					codegen, err := gen.Generate()
+					if err != nil {
+						return err
+					}
+
+					_, err = c.App.Writer.Write([]byte(codegen))
+					if err != nil {
+						return err
+					}
+
+					return nil
+				},
+			},
 		},
 	}).Run(os.Args)
 }
