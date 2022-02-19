@@ -1,4 +1,4 @@
-module github.com/tylermmorton/gocodeshift
+module github.com/tylermmorton/knit
 
 go 1.17
 

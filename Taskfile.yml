@@ -13,7 +13,7 @@ tasks:
   test:
     desc: runs the test suite
     cmds:
-      - go test ./...
+      - go test -cover ./...
   
   test:snapshot:
     desc: runs the test suite and updates all snapshots

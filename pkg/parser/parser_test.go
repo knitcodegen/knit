@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tylermmorton/gocodeshift/pkg/parser"
+	"github.com/tylermmorton/knit/pkg/parser"
 )
 
 const (

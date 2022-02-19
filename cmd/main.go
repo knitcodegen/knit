@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
-	"github.com/tylermmorton/gocodeshift/pkg/knit"
+	"github.com/tylermmorton/knit/pkg/knit"
 	"github.com/urfave/cli/v2"
 )
 

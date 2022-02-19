@@ -7,7 +7,7 @@ import (
 
 	"github.com/bradleyjkemp/cupaloy"
 	"github.com/stretchr/testify/assert"
-	"github.com/tylermmorton/gocodeshift/pkg/loader"
+	"github.com/tylermmorton/knit/pkg/loader"
 )
 
 func fromFile(t *testing.T, filepath string) string {

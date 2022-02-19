@@ -7,8 +7,8 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
-	"github.com/tylermmorton/gocodeshift/pkg/loader"
-	"github.com/tylermmorton/gocodeshift/pkg/parser"
+	"github.com/tylermmorton/knit/pkg/loader"
+	"github.com/tylermmorton/knit/pkg/parser"
 )
 
 type Generator interface {

@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/tylermmorton/gocodeshift/pkg/generator"
-	"github.com/tylermmorton/gocodeshift/pkg/parser"
+	"github.com/tylermmorton/knit/pkg/generator"
+	"github.com/tylermmorton/knit/pkg/parser"
 )
 
 type Config struct {
