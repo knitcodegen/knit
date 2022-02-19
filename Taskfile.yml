@@ -18,7 +18,11 @@ tasks:
 
   install:
     cmds:
-      - go install cmd/main.go
+      - go install cmd/knit.go
+  
+  uninstall:
+    cmds:
+      - rm $HOME/go/bin/knit
 
   test:
     desc: runs the test suite
