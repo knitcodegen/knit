@@ -1,0 +1,42 @@
+build:
+  binary: knit
+  main: ./cmd/knit.go
+  goos:
+    - 'windows'
+    - 'darwin'
+    - 'linux'
+  goarch:
+    - '386'
+    - 'amd64'
+    - 'arm'
+    - 'arm64'
+  goarm:
+    - '6'
+  ignore:
+    - goos: darwin
+      goarch: '386'
+  env:
+    - CGO_ENABLED=0
+  ldflags:
+    - -s -w # Don't set main.version.
+
+gomod:
+  proxy: true
+
+archives:
+  - name_template: "{{.Binary}}_{{.Os}}_{{.Arch}}"
+    files:
+      - README.md
+      - LICENSE
+    format_overrides:
+      - goos: windows
+        format: zip
+
+release:
+  draft: true
+
+snapshot:
+  name_template: "{{.Tag}}"
+
+checksum:
+  name_template: "knit_checksums.txt"
