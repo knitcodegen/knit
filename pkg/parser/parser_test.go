@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/knitgo/knit/pkg/parser"
 	"github.com/stretchr/testify/assert"
-	"github.com/tylermmorton/knit/pkg/parser"
 )
 
 const (

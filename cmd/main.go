@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/knitgo/knit/pkg/generator"
+	"github.com/knitgo/knit/pkg/knit"
+	"github.com/knitgo/knit/pkg/parser"
 	"github.com/pkg/errors"
-	"github.com/tylermmorton/knit/pkg/generator"
-	"github.com/tylermmorton/knit/pkg/knit"
-	"github.com/tylermmorton/knit/pkg/parser"
 	"github.com/urfave/cli/v2"
 )
 

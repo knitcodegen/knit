@@ -6,8 +6,8 @@ import (
 	"text/template"
 
 	"github.com/bradleyjkemp/cupaloy"
+	"github.com/knitgo/knit/pkg/loader"
 	"github.com/stretchr/testify/assert"
-	"github.com/tylermmorton/knit/pkg/loader"
 )
 
 func fromFile(t *testing.T, filepath string) string {

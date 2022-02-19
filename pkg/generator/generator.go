@@ -6,9 +6,9 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/knitgo/knit/pkg/loader"
+	"github.com/knitgo/knit/pkg/parser"
 	"github.com/pkg/errors"
-	"github.com/tylermmorton/knit/pkg/loader"
-	"github.com/tylermmorton/knit/pkg/parser"
 )
 
 type Generator interface {

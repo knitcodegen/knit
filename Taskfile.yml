@@ -1,7 +1,13 @@
 version: 3
 
 tasks:
-  install:
+  ci:
+    cmds:
+      - task: mod
+      - task: build
+      - task: test
+
+  mod:
     cmds:
       - go mod tidy -v
       - go mod vendor -v
@@ -9,6 +15,10 @@ tasks:
   build:
     cmds:
       - go build -o bin/knit cmd/main.go
+
+  install:
+    cmds:
+      - go install cmd/main.go
 
   test:
     desc: runs the test suite
