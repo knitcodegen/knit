@@ -11,7 +11,14 @@ tasks:
       - go build -o bin/knit cmd/main.go
 
   test:
-    env:
-      SCHEMA_FILE: ./schemas/openapi/test.yml
+    desc: runs the test suite
     cmds:
-      - go run cmd/main.go -- "./test/*.go"
+      - go test ./...
+  
+  test:snapshot:
+    desc: runs the test suite and updates all snapshots
+    env:
+      UPDATE_SNAPSHOTS: true
+    cmds:
+      - go test ./...
+    ignore_error: true

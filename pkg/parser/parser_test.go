@@ -17,13 +17,13 @@ func setupEnvironmentVars(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_Parse(t *testing.T) {
+func Test_Options(t *testing.T) {
 	setupEnvironmentVars(t)
 
 	type input = string
 
 	type want struct {
-		opts       parser.Options
+		opts       []*parser.Option
 		err        bool
 		errMessage string
 	}
@@ -37,7 +37,7 @@ func Test_Parse(t *testing.T) {
 			name:  "handles empty input block",
 			input: "",
 			want: want{
-				opts: parser.Options{},
+				opts: []*parser.Option{},
 			},
 		},
 		{
@@ -93,7 +93,7 @@ func Test_Parse(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		opts, err := parser.Parse(c.input)
+		opts, err := parser.Options(c.input)
 		if c.want.err {
 			assert.Errorf(t, err, c.want.errMessage)
 		}
@@ -101,7 +101,7 @@ func Test_Parse(t *testing.T) {
 	}
 }
 
-func Test_ParseCodegenEnd(t *testing.T) {
+func Test_EndAnnotation(t *testing.T) {
 	type input = string
 
 	type want struct {
@@ -132,7 +132,7 @@ func Test_ParseCodegenEnd(t *testing.T) {
 		},
 	}
 	for _, c := range cases {
-		match, err := parser.ParseCodegenEnd(c.input)
+		match, err := parser.EndAnnotation(c.input)
 		if c.want.err {
 			assert.Error(t, err, c.want.errMessage)
 		}

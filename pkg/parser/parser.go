@@ -38,9 +38,7 @@ type Option struct {
 	Literal string
 }
 
-type Options = []*Option
-
-func Parse(input string) (Options, error) {
+func Options(input string) ([]*Option, error) {
 	re2 := regexp2.MustCompile(OPTION_PATTERN, regexp2.None)
 
 	opts := make([]*Option, 0)
@@ -75,7 +73,7 @@ func replaceEscaped(str string) string {
 	return str
 }
 
-func ParseCodegenEnd(input string) (string, error) {
+func EndAnnotation(input string) (string, error) {
 	re := regexp2.MustCompile(END_PATTERN, regexp2.None)
 	m, err := re.FindStringMatch(input)
 	if err != nil {

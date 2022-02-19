@@ -1,0 +1,7 @@
+type Golden struct {
+
+    Hello string `yml:"World"`
+
+    Hola string `yml:"Mundo"`
+
+}

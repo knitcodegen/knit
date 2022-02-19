@@ -1,0 +1,5 @@
+type Golden struct {
+{{ range $k, $v := .Golden }}
+    {{ $k }} string `yml:"{{ $v }}"`
+{{end}}
+}

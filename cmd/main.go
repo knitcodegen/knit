@@ -25,9 +25,10 @@ func main() {
 				return errors.Wrap(err, "failed to match any files")
 			}
 
+			k := knit.New()
 			for _, match := range matches {
 				log.Printf("Knitting file: " + match)
-				err = knit.KnitFile(match)
+				err := k.ProcessFile(match)
 				if err != nil {
 					log.Printf("Failed to execute knit against file: %+v", err)
 					return errors.Wrap(err, "failed to knit file")
