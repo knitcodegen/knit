@@ -2,6 +2,17 @@
 
 Knit is a code generation toolkit that simplifies the process of adding and maintaining custom code generators in any project.
 
+## Installation
+### Homebrew
+```shell
+brew install knitcodegen/tap/knit
+```
+
+### Go Install
+```
+go install github.com/knitcodegen/knit@latest
+```
+
 ## Example
 Here's an example of `knit`'s usage with OpenAPI and template literals.
 
