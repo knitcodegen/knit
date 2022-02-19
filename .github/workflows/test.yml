@@ -24,7 +24,7 @@ jobs:
           GOPROXY: https://proxy.golang.org
 
       - name: Build
-        run: go build -o ./bin/knit -v ./cmd/knit
+        run: go build -o ./bin/knit ./cmd/knit.go
 
       - name: Test
         run: go test -cover ./...
