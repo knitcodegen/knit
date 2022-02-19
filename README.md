@@ -164,7 +164,10 @@ Currently remote input loading is not available but is planned. Please see issue
 ### `loader`
 The `loader` option specifies the loader used to load the input file. 
 
-Currently the only loader type is `openapi`
+These are the available loader types:
+- `yml`
+- `json`
+- `openapi`
 
 ### `template`
 The `template` option specifies either a template file or template literal. 
@@ -199,12 +202,3 @@ Currently remote template loading is not available but is planned. Please see is
 Template literals are defined within backticks and must be prefixed with the extension of the file the template would otherwise be defined in.
 
 As a rule of thumb, if a template literal exceeds 10 lines, it should probably be promoted to its own template file.
-
-Currently, backticks within a template literal will break the option parser. See issue #10 for more details. As a workaround, please define the template in a file.
-
-## Demo
-To demo `knit`, please clone the repository and run the following:
-
-```sh
-go run cmd/main.go -glob "./test/*.go"
-```
