@@ -50,6 +50,7 @@ brews:
     tap:
       owner: knitgo
       name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
     test:
       system "#{bin}/knit", "--help"
     install: |-
