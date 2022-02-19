@@ -1,4 +1,4 @@
-module github.com/knitgo/knit
+module github.com/knitcodegen/knit
 
 go 1.17
 

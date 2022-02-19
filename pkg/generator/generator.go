@@ -6,8 +6,8 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/knitgo/knit/pkg/loader"
-	"github.com/knitgo/knit/pkg/parser"
+	"github.com/knitcodegen/knit/pkg/loader"
+	"github.com/knitcodegen/knit/pkg/parser"
 	"github.com/pkg/errors"
 )
 

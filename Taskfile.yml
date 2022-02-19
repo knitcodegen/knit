@@ -14,7 +14,7 @@ tasks:
 
   build:
     cmds:
-      - go build -o bin/knit cmd/main.go
+      - go build -o bin/knit cmd/knit.go
 
   install:
     cmds:

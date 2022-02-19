@@ -45,10 +45,10 @@ brews:
   - name: knit
     description: Language & schema agnostic code generation toolkit
     license: MIT
-    homepage: https://github.com/knitgo/knit
+    homepage: https://github.com/knitcodegen/knit
     folder: Formula
     tap:
-      owner: knitgo
+      owner: knitcodegen
       name: homebrew-tap
       token: "{{ .Env.TAP_GITHUB_TOKEN }}"
     test:

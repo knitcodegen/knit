@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/knitgo/knit/pkg/generator"
-	"github.com/knitgo/knit/pkg/knit"
-	"github.com/knitgo/knit/pkg/parser"
+	"github.com/knitcodegen/knit/pkg/generator"
+	"github.com/knitcodegen/knit/pkg/knit"
+	"github.com/knitcodegen/knit/pkg/parser"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )

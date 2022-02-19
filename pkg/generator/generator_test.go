@@ -6,7 +6,7 @@ import (
 	"text/template"
 
 	"github.com/bradleyjkemp/cupaloy"
-	"github.com/knitgo/knit/pkg/loader"
+	"github.com/knitcodegen/knit/pkg/loader"
 	"github.com/stretchr/testify/assert"
 )
 

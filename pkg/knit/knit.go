@@ -4,8 +4,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/knitgo/knit/pkg/generator"
-	"github.com/knitgo/knit/pkg/parser"
+	"github.com/knitcodegen/knit/pkg/generator"
+	"github.com/knitcodegen/knit/pkg/parser"
 	"github.com/pkg/errors"
 )
 

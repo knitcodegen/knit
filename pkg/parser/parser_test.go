@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/knitgo/knit/pkg/parser"
+	"github.com/knitcodegen/knit/pkg/parser"
 	"github.com/stretchr/testify/assert"
 )
 
