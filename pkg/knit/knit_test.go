@@ -40,6 +40,30 @@ func Test_Knit(t *testing.T) {
 			},
 			want: want{},
 		},
+		{
+			name: "handles empty file",
+			input: input{
+				knit: &knit{},
+				file: "./testdata/empty",
+			},
+			want: want{},
+		},
+		{
+			name: "handles only end annotation",
+			input: input{
+				knit: &knit{},
+				file: "./testdata/only_end_annotation",
+			},
+			want: want{},
+		},
+		{
+			name: "handles no options configured",
+			input: input{
+				knit: &knit{},
+				file: "./testdata/no_options",
+			},
+			want: want{},
+		},
 	}
 
 	for _, c := range cases {
