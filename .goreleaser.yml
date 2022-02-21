@@ -35,11 +35,6 @@ archives:
 release:
   draft: true
 
-announce:
-  twitter:
-    enabled: true
-    message_template: 'Knit {{.Tag}} is now available! {{ .ReleaseURL }}'
-
 snapshot:
   name_template: "{{.Tag}}"
 
