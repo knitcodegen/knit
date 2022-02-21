@@ -106,6 +106,8 @@ func createLoader(loaderType string) (loader.SchemaLoader, error) {
 		return &loader.YamlLoader{}, nil
 	case "json":
 		return &loader.JsonLoader{}, nil
+	case "graphql":
+		return &loader.GraphqlLoader{}, nil
 	case "openapi3":
 		return &loader.OpenAPI3Loader{}, nil
 	}

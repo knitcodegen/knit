@@ -1,0 +1,7 @@
+
+{{ range $def := .Definitions }}
+    {{ if (eq $def.Kind "OBJECT") }}
+        type {{ $def.Name }} struct {
+        }
+    {{ end }}
+{{ end }}

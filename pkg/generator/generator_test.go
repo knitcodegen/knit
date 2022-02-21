@@ -23,6 +23,10 @@ func Test_Generate(t *testing.T) {
 		Parse(fromFile(t, "./testdata/templates/golden.tmpl"))
 	assert.NoError(t, err)
 
+	graphqlTemplate, err := template.New("golden_graphql").
+		Parse(fromFile(t, "./testdata/templates/golden_graphql.tmpl"))
+	assert.NoError(t, err)
+
 	type input = Generator
 
 	type want struct {
@@ -50,6 +54,15 @@ func Test_Generate(t *testing.T) {
 				Input:     fromFile(t, "./testdata/inputs/golden.yml"),
 				Loader:    &loader.YamlLoader{},
 				Templater: goldenTemplate,
+			},
+			want: want{},
+		},
+		{
+			name: "handles graphql input",
+			input: &generator{
+				Input:     fromFile(t, "./testdata/inputs/golden.graphql"),
+				Loader:    &loader.GraphqlLoader{},
+				Templater: graphqlTemplate,
 			},
 			want: want{},
 		},
