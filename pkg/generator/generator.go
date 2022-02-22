@@ -8,6 +8,8 @@ import (
 
 	"github.com/knitcodegen/knit/pkg/loader"
 	"github.com/knitcodegen/knit/pkg/parser"
+
+	"github.com/Masterminds/sprig"
 	"github.com/pkg/errors"
 )
 
@@ -70,7 +72,7 @@ func FromOpts(options []*parser.Option) (Generator, error) {
 					return nil, errors.Wrap(err, "failed to load template file")
 				}
 
-				tmpl, err := template.New("knit").Parse(string(byt))
+				tmpl, err := template.New("knit").Funcs(sprig.TxtFuncMap()).Parse(string(byt))
 				if err != nil {
 					return nil, errors.Wrap(err, "failed to parse template file")
 				}

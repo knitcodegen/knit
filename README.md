@@ -1,9 +1,10 @@
 # Knit
 
-`knit` is a code generation toolkit that simplifies the process of adding and maintaining custom code generators in any project. The tool is written in Go, but its usage is not limited to just Go projects. Generate code into any file using just an input and a template. Inputs can be in a variety of formats including plain `json` or `yaml`, or use custom loaders to parse [openapi](https://swagger.io/specification/), graphql and protobuf files. 
+`knit` is a code generation toolkit that simplifies the process of adding and maintaining custom code generators in any project. The tool is written in Go, but its usage is not limited to just Go projects. Generate code into any file using just an input and a template. Inputs can be in a variety of formats including plain `json` or `yaml`, or use custom loaders to parse [openapi](https://swagger.io/specification/) and [graphql](https://graphql.org/) files. 
 
 - [Usage Docs](https://github.com/knitcodegen/knit/blob/develop/docs/usage.md)
 - [Go Template Engine](https://pkg.go.dev/text/template)
+- [Sprig Template Functions](https://github.com/Masterminds/sprig)
 
 
 ## Installation
