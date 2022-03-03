@@ -13,7 +13,7 @@ type Config struct {
 }
 
 type Knit interface {
-	ProcessText(text string) error
+	ProcessText(text string) (string, error)
 	ProcessFile(filepath string) error
 }
 
@@ -32,12 +32,23 @@ func (k *knit) ProcessFile(filepath string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to load file")
 	}
-	return k.ProcessText(string(file))
+
+	text, err := k.ProcessText(string(file))
+	if err != nil {
+		return errors.Wrap(err, "failed to process text")
+	}
+
+	err = os.WriteFile(filepath, []byte(text), os.ModeExclusive)
+	if err != nil {
+		return errors.Wrap(err, "failed to write file")
+	}
+
+	return nil
 }
 
 // ProcessText parses knit options and executes
 // all configured codegen templates
-func (k *knit) ProcessText(text string) error {
+func (k *knit) ProcessText(text string) (string, error) {
 	b := strings.Builder{}
 
 	// Split the file into blocks based on the ending annotation.
@@ -58,17 +69,17 @@ func (k *knit) ProcessText(text string) error {
 
 		opts, err := parser.Options(block)
 		if err != nil {
-			return errors.Wrap(err, "failed to parse knit options")
+			return "", errors.Wrap(err, "failed to parse knit options")
 		}
 
 		generator, err := generator.FromOpts(opts)
 		if err != nil {
-			return errors.Wrap(err, "failed to setup generator context")
+			return "", errors.Wrap(err, "failed to setup generator context")
 		}
 
 		codegen, err := generator.Generate()
 		if err != nil {
-			return errors.Wrap(err, "failed to generate knit code block")
+			return "", errors.Wrap(err, "failed to generate knit code block")
 		}
 
 		b.WriteString(codegen)
@@ -76,10 +87,11 @@ func (k *knit) ProcessText(text string) error {
 		// Find the end annotation and insert it back into the block
 		endAnnotation, err := parser.EndAnnotation(block)
 		if err != nil {
-			return errors.Wrap(err, "failed to parse codegen end annotation")
+			return "", errors.Wrap(err, "failed to parse codegen end annotation")
 		}
 
 		b.WriteString(endAnnotation)
 	}
-	return nil
+
+	return b.String(), nil
 }
