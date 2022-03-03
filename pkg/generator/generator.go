@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"text/template"
 
 	"github.com/knitcodegen/knit/pkg/loader"
@@ -45,9 +46,14 @@ func FromOpts(options []*parser.Option) (Generator, error) {
 				g.Input = opt.Value
 				g.InputLiteral = opt.Literal
 			} else {
-				byt, err := os.ReadFile(opt.Value)
+				path, err := filepath.Abs(opt.Value)
 				if err != nil {
-					return nil, errors.Wrap(err, "failed to read input file")
+					return nil, errors.Wrap(err, "failed to resolve absolute path to input file")
+				}
+
+				byt, err := os.ReadFile(path)
+				if err != nil {
+					return nil, errors.Wrapf(err, "failed to read input file at path %s", path)
 				}
 
 				g.Input = string(byt)
@@ -67,9 +73,14 @@ func FromOpts(options []*parser.Option) (Generator, error) {
 
 				g.Templater = tmpl
 			} else {
-				byt, err := os.ReadFile(opt.Value)
+				path, err := filepath.Abs(opt.Value)
 				if err != nil {
-					return nil, errors.Wrap(err, "failed to load template file")
+					return nil, errors.Wrap(err, "failed to resolve absolute path to template file")
+				}
+
+				byt, err := os.ReadFile(path)
+				if err != nil {
+					return nil, errors.Wrapf(err, "failed to load template file at path %s", path)
 				}
 
 				tmpl, err := template.New("knit").Funcs(sprig.TxtFuncMap()).Parse(string(byt))
