@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/knitcodegen/knit/pkg/generator"
 	"github.com/knitcodegen/knit/pkg/knit"
@@ -12,28 +12,32 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// ldflags set by goreleaser
+var (
+	version = "dev"
+	commit  = "none"
+)
+
 func main() {
 	(&cli.App{
-		Name:  "knit",
-		Usage: "find and execute knit generators in specified file glob",
+		Name:    "knit",
+		Usage:   "language & schema agnostic code generation toolkit",
+		Version: fmt.Sprintf("%s\n%s", version, commit),
+
+		UsageText: "DEFAULT: knit ./**/*.gen.go\n\t COMMAND: knit [global options] command [command options] [arguments...]",
+		// Default Action
 		Action: func(c *cli.Context) error {
 			if c.NArg() == 0 {
 				return errors.New("at least one argument is required")
 			}
-
-			pattern := c.Args().First()
-			matches, err := filepath.Glob(pattern)
-			if err != nil {
-				return errors.Wrap(err, "failed to match any files")
-			}
+			files := c.Args().Slice()
 
 			k := knit.New()
-			for _, match := range matches {
-				log.Printf("Knitting file: " + match)
-				err := k.ProcessFile(match)
+			for _, file := range files {
+				err := k.ProcessFile(file)
 				if err != nil {
-					log.Printf("Failed to execute knit against file: %+v", err)
-					return errors.Wrap(err, "failed to knit file")
+					log.Fatalf("knit failed to process file: %s\n%+v", file, err)
+					return err
 				}
 			}
 
@@ -42,21 +46,25 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name:    "generate",
+				Usage:   "Runs the knit code generator using the specified options",
 				Aliases: []string{"gen"},
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Required: false,
+						Aliases:  []string{"l"},
 						Name:     "loader",
 						Value:    "",
 						Usage:    "loader type for input file",
 					},
 					&cli.PathFlag{
+						Aliases:  []string{"i"},
 						Required: true,
 						Name:     "input",
 						Value:    "",
 						Usage:    "input file",
 					},
 					&cli.PathFlag{
+						Aliases:  []string{"t"},
 						Required: true,
 						Name:     "template",
 						Value:    "",

@@ -13,8 +13,15 @@ tasks:
       - go mod vendor -v
 
   build:
+    vars:
+      GIT_HASH:
+        sh: git rev-parse HEAD
     cmds:
-      - go build -o bin/knit cmd/knit.go
+      - |
+        go build \
+          -o bin/knit \
+          -ldflags "-X main.commit={{ .GIT_HASH }}" \
+          cmd/knit.go
 
   install:
     cmds:
