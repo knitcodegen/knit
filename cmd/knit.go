@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/knitcodegen/knit/pkg/generator"
 	"github.com/knitcodegen/knit/pkg/knit"
@@ -38,8 +40,16 @@ func main() {
 				Usage: "Enable verbose logging",
 				Value: false,
 			},
+			&cli.BoolFlag{
+				Name:  "parallel",
+				Usage: "Enable parallel file processing",
+				Value: true,
+			},
 		},
 		Action: func(c *cli.Context) error {
+			var wg sync.WaitGroup
+			var parallel = c.Bool("parallel")
+
 			if c.NArg() == 0 {
 				return errors.New("at least one argument is required")
 			}
@@ -51,12 +61,15 @@ func main() {
 			})
 
 			for _, file := range files {
-				err := k.ProcessFile(file)
-				if err != nil {
-					log.Fatalf("knit failed to process file: %s\n%+v", file, err)
-					return err
+				if parallel {
+					wg.Add(1)
+					go knitWorker(c, &wg, k, file)
+				} else {
+					knitWorker(c, nil, k, file)
 				}
 			}
+
+			wg.Wait()
 
 			return nil
 		},
@@ -122,4 +135,30 @@ func main() {
 			},
 		},
 	}).Run(os.Args)
+}
+
+func knitWorker(c *cli.Context, wg *sync.WaitGroup, k knit.Knit, file string) {
+	startTime := time.Now()
+
+	if wg != nil {
+		defer wg.Done()
+	}
+
+	modified, err := k.ProcessFile(file)
+	if c.Bool("verbose") {
+		if err != nil {
+			log.Printf("(%s) knit failed to process file: %s\n%+v",
+				time.Since(startTime),
+				file,
+				err,
+			)
+		}
+
+		if modified {
+			log.Printf("(%s) knit modified file %s",
+				time.Since(startTime),
+				file,
+			)
+		}
+	}
 }

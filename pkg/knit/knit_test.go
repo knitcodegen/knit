@@ -76,7 +76,7 @@ func Test_Knit(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			err := c.input.knit.ProcessFile(c.input.file)
+			_, err := c.input.knit.ProcessFile(c.input.file)
 			if c.want.err {
 				assert.Errorf(t, err, c.want.errMessage)
 			}
