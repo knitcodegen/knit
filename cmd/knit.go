@@ -26,13 +26,30 @@ func main() {
 
 		UsageText: "DEFAULT: knit ./**/*.gen.go\n\t COMMAND: knit [global options] command [command options] [arguments...]",
 		// Default Action
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "format",
+				Usage:   "Enable auto-formatting of .go source files",
+				Aliases: []string{"f"},
+				Value:   true,
+			},
+			&cli.BoolFlag{
+				Name:  "verbose",
+				Usage: "Enable verbose logging",
+				Value: false,
+			},
+		},
 		Action: func(c *cli.Context) error {
 			if c.NArg() == 0 {
 				return errors.New("at least one argument is required")
 			}
 			files := c.Args().Slice()
 
-			k := knit.New()
+			k := knit.New(&knit.Config{
+				Format:  c.Bool("format"),
+				Verbose: c.Bool("verbose"),
+			})
+
 			for _, file := range files {
 				err := k.ProcessFile(file)
 				if err != nil {

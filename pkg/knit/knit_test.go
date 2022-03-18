@@ -35,7 +35,9 @@ func Test_Knit(t *testing.T) {
 		{
 			name: "knits file successfully",
 			input: input{
-				knit: &knit{},
+				knit: &knit{
+					cfg: &Config{},
+				},
 				file: "./testdata/golden.go",
 			},
 			want: want{},
@@ -43,7 +45,9 @@ func Test_Knit(t *testing.T) {
 		{
 			name: "handles empty file",
 			input: input{
-				knit: &knit{},
+				knit: &knit{
+					cfg: &Config{},
+				},
 				file: "./testdata/empty",
 			},
 			want: want{},
@@ -51,7 +55,9 @@ func Test_Knit(t *testing.T) {
 		{
 			name: "handles only end annotation",
 			input: input{
-				knit: &knit{},
+				knit: &knit{
+					cfg: &Config{},
+				},
 				file: "./testdata/only_end_annotation",
 			},
 			want: want{},
@@ -59,7 +65,9 @@ func Test_Knit(t *testing.T) {
 		{
 			name: "handles no options configured",
 			input: input{
-				knit: &knit{},
+				knit: &knit{
+					cfg: &Config{},
+				},
 				file: "./testdata/no_options",
 			},
 			want: want{},

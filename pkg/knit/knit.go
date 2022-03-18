@@ -1,8 +1,13 @@
 package knit
 
 import (
+	"bytes"
+	"crypto/md5"
+	"go/format"
+	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/knitcodegen/knit/pkg/generator"
 	"github.com/knitcodegen/knit/pkg/parser"
@@ -10,6 +15,10 @@ import (
 )
 
 type Config struct {
+	// Format tells knit to automatically format Go code files
+	Format bool `yaml:"format"`
+	// Verbose tells knit to log more output
+	Verbose bool `yaml:"verbose"`
 }
 
 type Knit interface {
@@ -21,26 +30,47 @@ type knit struct {
 	cfg *Config
 }
 
-func New() Knit {
-	return &knit{}
+func New(cfg *Config) Knit {
+	return &knit{
+		cfg: cfg,
+	}
 }
 
 // ProcessFile reads and parses knit options from file
 // then executes all configured codegen templates
 func (k *knit) ProcessFile(filepath string) error {
+	startTime := time.Now()
+
 	file, err := os.ReadFile(filepath)
 	if err != nil {
 		return errors.Wrap(err, "failed to load file")
 	}
+	fileSum := md5.New().Sum(file)
 
 	text, err := k.ProcessText(string(file))
 	if err != nil {
 		return errors.Wrap(err, "failed to process text")
 	}
 
-	err = os.WriteFile(filepath, []byte(text), os.ModeExclusive)
-	if err != nil {
-		return errors.Wrap(err, "failed to write file")
+	// automatically format go files
+	if k.cfg.Format && strings.HasSuffix(filepath, ".go") {
+		formatted, err := format.Source([]byte(text))
+		if err != nil {
+			return errors.Wrap(err, "failed to format go source code")
+		}
+		text = string(formatted)
+	}
+
+	textSum := md5.New().Sum([]byte(text))
+	if !bytes.Equal(fileSum, textSum) {
+		err = os.WriteFile(filepath, []byte(text), os.ModeExclusive)
+		if err != nil {
+			return errors.Wrap(err, "failed to write file")
+		}
+
+		if k.cfg.Verbose {
+			log.Printf("(%s) knit modified file %s", time.Since(startTime), filepath)
+		}
 	}
 
 	return nil
