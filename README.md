@@ -17,7 +17,7 @@ brew install knitcodegen/tap/knit
 ### Go Install
 If you're working in a Go environment
 ```
-go install github.com/knitcodegen/knit@latest
+go install github.com/knitcodegen/knit/cmd/knit@latest
 ```
 
 ## Examples

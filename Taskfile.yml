@@ -21,11 +21,11 @@ tasks:
         go build \
           -o bin/knit \
           -ldflags "-X main.commit={{ .GIT_HASH }}" \
-          cmd/knit.go
+          cmd/knit/knit.go
 
   install:
     cmds:
-      - go install cmd/knit.go
+      - go install cmd/knit/knit.go
   
   uninstall:
     cmds:
