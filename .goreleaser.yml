@@ -1,6 +1,6 @@
 build:
   binary: knit
-  main: ./cmd/knit.go
+  main: ./cmd/knit/knit.go
   goos:
     - 'windows'
     - 'darwin'
