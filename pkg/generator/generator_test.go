@@ -3,11 +3,21 @@ package generator
 import (
 	"os"
 	"testing"
-	"text/template"
 
 	"github.com/bradleyjkemp/cupaloy"
-	"github.com/knitcodegen/knit/pkg/loader"
 	"github.com/stretchr/testify/assert"
+)
+
+var (
+	inputFileMissing    = "./testdata/does_not_exist.json"
+	templateFileMissing = "./testdata/does_not_exist.tmpl"
+
+	inputFileJson    = "./testdata/inputs/golden.json"
+	inputFileYaml    = "./testdata/inputs/golden.yml"
+	inputFileGraphql = "./testdata/inputs/golden.graphql"
+
+	inputTmplFileGolden        = "./testdata/templates/golden.tmpl"
+	inputTmplFileGoldenGraphql = "./testdata/templates/golden_graphql.tmpl"
 )
 
 func fromFile(t *testing.T, filepath string) string {
@@ -19,14 +29,6 @@ func fromFile(t *testing.T, filepath string) string {
 }
 
 func Test_Generate(t *testing.T) {
-	goldenTemplate, err := template.New("golden").
-		Parse(fromFile(t, "./testdata/templates/golden.tmpl"))
-	assert.NoError(t, err)
-
-	graphqlTemplate, err := template.New("golden_graphql").
-		Parse(fromFile(t, "./testdata/templates/golden_graphql.tmpl"))
-	assert.NoError(t, err)
-
 	type input = Generator
 
 	type want struct {
@@ -40,29 +42,115 @@ func Test_Generate(t *testing.T) {
 		want  want
 	}{
 		{
-			name: "handles json input",
+			name: "handles missing loader type",
 			input: &generator{
-				Input:     fromFile(t, "./testdata/inputs/golden.json"),
-				Loader:    &loader.JsonLoader{},
-				Templater: goldenTemplate,
+				InputLiteral:    fromFile(t, inputFileJson),
+				TemplateLiteral: fromFile(t, inputTmplFileGolden),
+			},
+			want: want{
+				err:        true,
+				errMessage: "missing loader type",
+			},
+		},
+		{
+			name: "handles missing input",
+			input: &generator{
+				LoaderType:      "json",
+				TemplateLiteral: fromFile(t, inputTmplFileGolden),
+			},
+			want: want{
+				err:        true,
+				errMessage: "missing input",
+			},
+		},
+		{
+			name: "handles missing template",
+			input: &generator{
+				LoaderType:   "json",
+				InputLiteral: fromFile(t, inputFileJson),
+			},
+			want: want{
+				err:        true,
+				errMessage: "missing template",
+			},
+		},
+		{
+			name: "handles failure to load input file",
+			input: &generator{
+				LoaderType: "json",
+				InputFile:  &inputFileMissing,
+			},
+			want: want{
+				err:        true,
+				errMessage: "failed to load input file",
+			},
+		},
+		{
+			name: "handles failure to load template file",
+			input: &generator{
+				LoaderType:   "json",
+				InputLiteral: fromFile(t, inputFileJson),
+				TemplateFile: &templateFileMissing,
+			},
+			want: want{
+				err:        true,
+				errMessage: "failed to load template file",
+			},
+		},
+		{
+			name: "handles failure to create loader",
+			input: &generator{
+				LoaderType:   "bad",
+				InputFile:    &inputFileJson,
+				TemplateFile: &inputTmplFileGolden,
+			},
+			want: want{
+				err:        true,
+				errMessage: "failed to create loader",
+			},
+		},
+		{
+			name: "handles json input literal",
+			input: &generator{
+				LoaderType:      "json",
+				InputLiteral:    fromFile(t, inputFileJson),
+				TemplateLiteral: fromFile(t, inputTmplFileGolden),
 			},
 			want: want{},
 		},
 		{
-			name: "handles yaml input",
+			name: "handles json input file",
 			input: &generator{
-				Input:     fromFile(t, "./testdata/inputs/golden.yml"),
-				Loader:    &loader.YamlLoader{},
-				Templater: goldenTemplate,
+				LoaderType:   "json",
+				InputFile:    &inputFileJson,
+				TemplateFile: &inputTmplFileGolden,
 			},
 			want: want{},
 		},
 		{
-			name: "handles graphql input",
+			name: "handles yaml input literal",
 			input: &generator{
-				Input:     fromFile(t, "./testdata/inputs/golden.graphql"),
-				Loader:    &loader.GraphqlLoader{},
-				Templater: graphqlTemplate,
+				LoaderType:      "yaml",
+				InputLiteral:    fromFile(t, inputFileYaml),
+				TemplateLiteral: fromFile(t, inputTmplFileGolden),
+			},
+			want: want{},
+		},
+		{
+			name: "handles yaml input file",
+			input: &generator{
+				LoaderType:   "yaml",
+				InputFile:    &inputFileYaml,
+				TemplateFile: &inputTmplFileGolden,
+			},
+			want: want{},
+		},
+		{
+			name: "handles graphql input literal",
+			input: &generator{
+				LoaderType:      "graphql",
+				InputLiteral:    fromFile(t, inputFileGraphql),
+				TemplateLiteral: fromFile(t, inputTmplFileGoldenGraphql),
 			},
 			want: want{},
 		},
@@ -73,8 +161,9 @@ func Test_Generate(t *testing.T) {
 			codegen, err := c.input.Generate()
 			if c.want.err {
 				assert.Errorf(t, err, c.want.errMessage)
+			} else {
+				cupaloy.SnapshotT(t, codegen)
 			}
-			cupaloy.SnapshotT(t, codegen)
 		})
 	}
 }

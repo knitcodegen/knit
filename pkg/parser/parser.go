@@ -8,15 +8,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type OptionType = string
-
-const (
-	Input    OptionType = "input"
-	Loader   OptionType = "loader"
-	Variable OptionType = "variable"
-	Template OptionType = "template"
-)
-
 const (
 	ANNOTATION_OPT = "@knit"
 	ANNOTATION_BEG = "@+knit"
@@ -72,9 +63,7 @@ func Options(input string) ([]*Option, error) {
 }
 
 func replaceEscaped(str string) string {
-	str = strings.ReplaceAll(str, "\\`", "`")
-
-	return str
+	return strings.ReplaceAll(str, "\\`", "`")
 }
 
 // BeginAnnotation uses regexp to match parser.BEG_PATTERN in the given

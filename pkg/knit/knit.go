@@ -81,7 +81,7 @@ func (k *knit) ProcessText(text string) (string, error) {
 			return "", errors.Wrap(err, "failed to parse knit options")
 		}
 
-		generator, err := generator.FromOpts(opts)
+		generator, err := generator.New(opts...)
 		if err != nil {
 			return "", errors.Wrap(err, "failed to setup generator context")
 		}

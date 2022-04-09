@@ -96,7 +96,7 @@ func main() {
 					},
 				},
 				Action: func(c *cli.Context) error {
-					gen, err := generator.FromOpts([]*parser.Option{
+					opts := []*parser.Option{
 						{
 							Type:  "loader",
 							Value: c.String("loader"),
@@ -109,7 +109,9 @@ func main() {
 							Type:  "template",
 							Value: c.Path("template"),
 						},
-					})
+					}
+
+					gen, err := generator.New(opts...)
 					if err != nil {
 						return err
 					}
