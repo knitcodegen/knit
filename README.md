@@ -39,11 +39,11 @@ paths:
 ```
 template.tmpl
 ```tmpl
-{{ range $k, $v := .Paths }} 
-  func {{ .Post.OperationID }}() error {
-    return nil
-  }
-{{end}}  
+type Server interface {
+{{ range $k, $v := .Paths -}} 
+  {{ .Post.OperationID }}(w http.ResponseWriter, r *http.Request)
+{{end}}
+}
 ```
 example.go:
 ```go
@@ -69,12 +69,9 @@ package example
 */
 // @+knit
 
-func CreatePet() error {
-  return nil
-}
-
-func CreateCar() error {
-  return nil
+type Server interface {
+  CreatePet(w http.ResponseWriter, r *http.Request)
+  CreateCar(w http.ResponseWriter, r *http.Request)
 }
 
 // @!knit
@@ -89,11 +86,8 @@ knit generate \
 ```
 codegen.go:
 ```go
-func CreatePet() error {
-  return nil
-}
-
-func CreateCar() error {
-  return nil
+type Server interface {
+  CreatePet(w http.ResponseWriter, r *http.Request)
+  CreateCar(w http.ResponseWriter, r *http.Request)
 }
 ```
