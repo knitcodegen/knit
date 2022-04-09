@@ -59,21 +59,22 @@ func New(cfg *Config) Knit {
 func (k *knit) ProcessText(text string) (string, error) {
 	b := strings.Builder{}
 
-	// Split the file into blocks based on the ending annotation.
+	// Split the text into blocks based on the ending annotation.
 	blocks := strings.SplitAfter(text, parser.ANNOTATION_END)
 	for _, block := range blocks {
 		// Look for a begin annotation. If there isn't one in
-		// this code block, just write the block and continue
-		begin := strings.Index(block, parser.ANNOTATION_BEG)
-		if begin == -1 {
+		// this text block, just write the block and continue
+		beginAnnotation, err := parser.BeginAnnotation(block)
+		if err != nil {
 			b.WriteString(block)
 			continue
 		}
 
+		beginIndex := strings.Index(block, beginAnnotation)
+
 		// If there is a begin annotation, append all the
-		// text before it plus the annotation
-		b.WriteString(block[:begin+len(parser.ANNOTATION_BEG)])
-		b.WriteString("\n")
+		// text before it plus the matched annotation
+		b.WriteString(block[:beginIndex+len(beginAnnotation)])
 
 		opts, err := parser.Options(block)
 		if err != nil {

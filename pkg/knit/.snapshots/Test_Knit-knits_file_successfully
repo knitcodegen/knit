@@ -19,6 +19,24 @@ type HelloWorld struct {
 // @!knit
 
 /*
+  @knit input $SCHEMA_FILE
+  @knit loader openapi3
+  @knit template tmpl`
+    // HolaMundo is a struct
+    type HolaMundo struct {
+
+    }
+  `
+*/
+// @+knit /!\ GENERATED CODE. DO NOT EDIT
+
+// HolaMundo is a struct
+type HolaMundo struct {
+}
+
+// @!knit /!\ GENERATED CODE. DO NOT EDIT!
+
+/*
   @knit input ./schemas/yml/test.yml
   @knit loader yml
   @knit template tmpl`

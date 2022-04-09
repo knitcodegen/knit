@@ -101,6 +101,45 @@ func Test_Options(t *testing.T) {
 	}
 }
 
+func Test_BeginAnnotation(t *testing.T) {
+	type input = string
+
+	type want struct {
+		match      string
+		err        bool
+		errMessage string
+	}
+
+	cases := []struct {
+		name  string
+		input input
+		want  want
+	}{
+		{
+			name:  "parses successfully",
+			input: "// @+knit **abc",
+			want: want{
+				match: "// @+knit **abc",
+			},
+		},
+		{
+			name:  "handles empty input",
+			input: "",
+			want: want{
+				err:        true,
+				errMessage: "did not match begin annotation",
+			},
+		},
+	}
+	for _, c := range cases {
+		match, err := parser.BeginAnnotation(c.input)
+		if c.want.err {
+			assert.Error(t, err, c.want.errMessage)
+		}
+		assert.Equal(t, c.want.match, match)
+	}
+}
+
 func Test_EndAnnotation(t *testing.T) {
 	type input = string
 

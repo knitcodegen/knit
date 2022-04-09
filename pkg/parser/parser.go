@@ -38,6 +38,10 @@ type Option struct {
 	Literal string
 }
 
+// Options uses regexp to match all parser.OPTION_PATTERN in the given input
+// text. Returns a slice of *Option representing the parsed results.
+// This function will match everything including the option type, option value
+// and any option literal defined.
 func Options(input string) ([]*Option, error) {
 	re2 := regexp2.MustCompile(OPTION_PATTERN, regexp2.None)
 
@@ -73,6 +77,23 @@ func replaceEscaped(str string) string {
 	return str
 }
 
+// BeginAnnotation uses regexp to match parser.BEG_PATTERN in the given
+// input text. Returns an error if no match was found
+func BeginAnnotation(input string) (string, error) {
+	re := regexp2.MustCompile(BEG_PATTERN, regexp2.None)
+	m, err := re.FindStringMatch(input)
+	if err != nil {
+		return "", err
+	}
+	if m == nil {
+		return "", errors.New("did not match begin annotation")
+	}
+
+	return m.String(), nil
+}
+
+// EndAnnotation uses regexp to match parser.END_PATTERN in the given
+// input text. Returns an error if no match was found
 func EndAnnotation(input string) (string, error) {
 	re := regexp2.MustCompile(END_PATTERN, regexp2.None)
 	m, err := re.FindStringMatch(input)
