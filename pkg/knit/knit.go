@@ -6,6 +6,8 @@ import (
 	"go/format"
 	"os"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/knitcodegen/knit/pkg/generator"
 	"github.com/knitcodegen/knit/pkg/parser"
@@ -13,15 +15,34 @@ import (
 )
 
 type Config struct {
-	// Format tells knit to automatically format Go code files
+	// Format tells knit to automatically format Go source code files
 	Format bool `yaml:"format"`
 	// Verbose tells knit to log more output
 	Verbose bool `yaml:"verbose"`
+	// Parallel tells knit to process input files in parallel
+	Parallel bool `yaml:"parallel"`
 }
+
+// ProcessResult represents a file that has been processed by knit
+type ProcessResult struct {
+	// The file that was processed
+	File string
+	// Was the file modified during processing
+	Modified bool
+	// An error, if any, that occured during processing
+	Error error
+	// How long it took to process the file
+	Time time.Duration
+}
+
+// OnFileProcessed is a callback function used to notify callers when knit is
+// done processing a file.
+type OnFileProcessed = func(res ProcessResult)
 
 type Knit interface {
 	ProcessText(text string) (string, error)
-	ProcessFile(filepath string) (bool, error)
+	ProcessFile(filepath string) ProcessResult
+	ProcessFiles(filepaths []string, fn OnFileProcessed)
 }
 
 type knit struct {
@@ -34,44 +55,7 @@ func New(cfg *Config) Knit {
 	}
 }
 
-// ProcessFile reads and parses knit options from file
-// then executes all configured codegen templates
-func (k *knit) ProcessFile(filepath string) (bool, error) {
-	file, err := os.ReadFile(filepath)
-	if err != nil {
-		return false, errors.Wrap(err, "failed to load file")
-	}
-	fileSum := md5.New().Sum(file)
-
-	text, err := k.ProcessText(string(file))
-	if err != nil {
-		return false, errors.Wrap(err, "failed to process text")
-	}
-
-	// automatically format go files
-	if k.cfg.Format && strings.HasSuffix(filepath, ".go") {
-		formatted, err := format.Source([]byte(text))
-		if err != nil {
-			return false, errors.Wrap(err, "failed to format go source code")
-		}
-		text = string(formatted)
-	}
-
-	textSum := md5.New().Sum([]byte(text))
-	if !bytes.Equal(fileSum, textSum) {
-		err = os.WriteFile(filepath, []byte(text), os.ModeExclusive)
-		if err != nil {
-			return false, errors.Wrap(err, "failed to write file")
-		}
-
-		return true, nil
-	}
-
-	return false, nil
-}
-
-// ProcessText parses knit options and executes
-// all configured codegen templates
+// ProcessText parses knit options and executes all configured codegen templates
 func (k *knit) ProcessText(text string) (string, error) {
 	b := strings.Builder{}
 
@@ -118,4 +102,95 @@ func (k *knit) ProcessText(text string) (string, error) {
 	}
 
 	return b.String(), nil
+}
+
+// ProcessFile reads and parses knit options from file
+// then executes all configured codegen templates
+func (k *knit) ProcessFile(filepath string) ProcessResult {
+	startTime := time.Now()
+
+	file, err := os.ReadFile(filepath)
+	if err != nil {
+		return ProcessResult{
+			File:  filepath,
+			Time:  time.Since(startTime),
+			Error: errors.Wrap(err, "failed to load file"),
+		}
+	}
+	fileSum := md5.New().Sum(file)
+
+	text, err := k.ProcessText(string(file))
+	if err != nil {
+		return ProcessResult{
+			File:  filepath,
+			Time:  time.Since(startTime),
+			Error: errors.Wrap(err, "failed to process text"),
+		}
+	}
+
+	// automatically format go files
+	if k.cfg.Format && strings.HasSuffix(filepath, ".go") {
+		formatted, err := format.Source([]byte(text))
+		if err != nil {
+			return ProcessResult{
+				File:  filepath,
+				Time:  time.Since(startTime),
+				Error: errors.Wrap(err, "failed to format go source code"),
+			}
+		}
+		text = string(formatted)
+	}
+
+	textSum := md5.New().Sum([]byte(text))
+	if !bytes.Equal(fileSum, textSum) {
+		err = os.WriteFile(filepath, []byte(text), os.ModeExclusive)
+		if err != nil {
+			return ProcessResult{
+				File:  filepath,
+				Time:  time.Since(startTime),
+				Error: errors.Wrap(err, "failed to write file"),
+			}
+		}
+
+		return ProcessResult{
+			File:     filepath,
+			Time:     time.Since(startTime),
+			Modified: true,
+		}
+	}
+
+	return ProcessResult{
+		File: filepath,
+		Time: time.Since(startTime),
+	}
+}
+
+// ProcessFiles takes a slice of file paths and processes all of them. If
+// knit is configured to run in parallel, goroutines are spawned for each
+// file to handle the processing work. The OnFileProcessed function provided
+// will be called after each file has been successfully processed by knit.
+func (k *knit) ProcessFiles(files []string, fn OnFileProcessed) {
+	var wg sync.WaitGroup
+
+	for _, file := range files {
+		if k.cfg.Parallel {
+			wg.Add(1)
+			go func(file string) {
+				defer wg.Done()
+				res := k.ProcessFile(file)
+
+				if fn != nil {
+					fn(res)
+				}
+			}(file)
+		} else {
+			res := k.ProcessFile(file)
+
+			if fn != nil {
+				fn(res)
+			}
+		}
+	}
+
+	wg.Wait()
 }

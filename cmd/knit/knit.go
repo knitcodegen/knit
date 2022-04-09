@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
-	"time"
 
 	"github.com/knitcodegen/knit/pkg/generator"
 	"github.com/knitcodegen/knit/pkg/knit"
@@ -47,29 +45,25 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			var wg sync.WaitGroup
-			var parallel = c.Bool("parallel")
-
 			if c.NArg() == 0 {
 				return errors.New("at least one argument is required")
 			}
+
 			files := c.Args().Slice()
 
 			k := knit.New(&knit.Config{
-				Format:  c.Bool("format"),
-				Verbose: c.Bool("verbose"),
+				Format:   c.Bool("format"),
+				Verbose:  c.Bool("verbose"),
+				Parallel: c.Bool("parallel"),
 			})
 
-			for _, file := range files {
-				if parallel {
-					wg.Add(1)
-					go knitWorker(c, &wg, k, file)
+			k.ProcessFiles(files, func(res knit.ProcessResult) {
+				if res.Error != nil {
+					log.Printf("knit failed to process file: %s\n%+v", res.File, res.Error)
 				} else {
-					knitWorker(c, nil, k, file)
+					log.Printf("knit processed file successfully: %s", res.File)
 				}
-			}
-
-			wg.Wait()
+			})
 
 			return nil
 		},
@@ -135,30 +129,4 @@ func main() {
 			},
 		},
 	}).Run(os.Args)
-}
-
-func knitWorker(c *cli.Context, wg *sync.WaitGroup, k knit.Knit, file string) {
-	startTime := time.Now()
-
-	if wg != nil {
-		defer wg.Done()
-	}
-
-	modified, err := k.ProcessFile(file)
-	if c.Bool("verbose") {
-		if err != nil {
-			log.Printf("(%s) knit failed to process file: %s\n%+v",
-				time.Since(startTime),
-				file,
-				err,
-			)
-		}
-
-		if modified {
-			log.Printf("(%s) knit modified file %s",
-				time.Since(startTime),
-				file,
-			)
-		}
-	}
 }

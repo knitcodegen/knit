@@ -76,9 +76,9 @@ func Test_Knit(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			_, err := c.input.knit.ProcessFile(c.input.file)
+			res := c.input.knit.ProcessFile(c.input.file)
 			if c.want.err {
-				assert.Errorf(t, err, c.want.errMessage)
+				assert.Errorf(t, res.Error, c.want.errMessage)
 			}
 			cupaloy.SnapshotT(t, fromFile(t, c.input.file))
 		})
